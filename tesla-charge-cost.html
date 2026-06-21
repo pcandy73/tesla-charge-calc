@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0F12">
+<title>Charge Cost · Model 3 LR</title>
+<style>
+  :root{
+    --bg:#0B0F12;
+    --surface:#12181C;
+    --surface-2:#1A2228;
+    --line:#252E34;
+    --teal:#2BD9B0;
+    --teal-dim:#163B33;
+    --amber:#FF9D4D;
+    --amber-dim:#3A2615;
+    --text:#EDF2F4;
+    --text-dim:#8A9BA3;
+    --text-faint:#566066;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  body{min-height:100vh;display:flex;justify-content:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;}
+  .app{width:100%;max-width:460px;padding:28px 22px 40px;}
+
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);
+    font-weight:600;margin:0 0 2px;}
+  h1{font-size:21px;font-weight:600;margin:0 0 24px;color:var(--text);letter-spacing:-.01em;}
+  h1 span{color:var(--text-dim);font-weight:400;}
+
+  /* battery hero */
+  .hero{position:relative;margin-bottom:28px;}
+  .batt-wrap{display:flex;align-items:center;gap:18px;}
+  .batt-shell{position:relative;width:108px;height:54px;border:2.5px solid var(--line);border-radius:9px;
+    flex-shrink:0;overflow:hidden;background:var(--surface);}
+  .batt-shell::after{content:"";position:absolute;right:-7px;top:18px;width:6px;height:18px;
+    background:var(--line);border-radius:0 3px 3px 0;}
+  .batt-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:var(--teal);
+    transition:width .35s ease,background .35s ease;}
+  .batt-fill.low{background:var(--amber);}
+  .batt-readout{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:30px;font-weight:600;
+    line-height:1;color:var(--text);}
+  .batt-readout small{font-size:16px;font-weight:500;color:var(--text-dim);margin-left:2px;}
+  .batt-label{font-size:12px;color:var(--text-dim);margin-top:3px;}
+
+  /* slider row */
+  .field{margin-bottom:20px;}
+  .field-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+  .field-name{font-size:13px;color:var(--text-dim);font-weight:500;}
+  .field-val{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:16px;font-weight:600;color:var(--text);}
+  .field-val small{color:var(--text-faint);font-weight:500;font-size:12px;}
+
+  input[type=range]{width:100%;height:34px;-webkit-appearance:none;background:transparent;margin:0;display:block;}
+  input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:var(--line);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+    background:var(--teal);border:4px solid var(--bg);margin-top:-9.5px;box-shadow:0 0 0 1px var(--line);}
+  input[type=range].amber::-webkit-slider-thumb{background:var(--amber);}
+  input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:var(--line);}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--teal);
+    border:4px solid var(--bg);box-shadow:0 0 0 1px var(--line);}
+  input[type=range].amber::-moz-range-thumb{background:var(--amber);}
+
+  .numfield{display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:0 14px;height:48px;}
+  .numfield span{color:var(--text-faint);font-size:15px;margin-right:6px;}
+  .numfield input[type=number]{flex:1;background:transparent;border:none;color:var(--text);
+    font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:17px;font-weight:600;outline:none;
+    text-align:left;-moz-appearance:textfield;}
+  .numfield input[type=number]::-webkit-outer-spin-button,
+  .numfield input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .numfield small{color:var(--text-faint);font-size:13px;}
+
+  /* result card */
+  .result{margin-top:8px;border-radius:16px;background:var(--surface);border:1px solid var(--line);
+    padding:22px 20px;}
+  .result-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .result-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);font-weight:600;}
+  .result-cost{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:42px;font-weight:600;
+    line-height:1;color:var(--amber);margin-top:6px;}
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .stat{background:var(--surface-2);border-radius:10px;padding:12px 14px;}
+  .stat-label{font-size:11px;color:var(--text-faint);margin-bottom:4px;}
+  .stat-val{font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:17px;font-weight:600;color:var(--text);}
+
+  .note{font-size:12px;color:var(--text-faint);line-height:1.55;margin-top:18px;}
+  .note b{color:var(--text-dim);}
+
+  details{margin-top:22px;}
+  summary{font-size:13px;color:var(--text-dim);cursor:pointer;list-style:none;display:flex;
+    align-items:center;gap:6px;font-weight:500;}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--text-faint);
+    border-bottom:1.5px solid var(--text-faint);transform:rotate(-45deg);transition:transform .2s;}
+  details[open] summary::before{transform:rotate(45deg);}
+  .adv{padding-top:16px;}
+
+  .invalid{color:var(--amber) !important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <p class="eyebrow">2021 Model 3 Long Range AWD</p>
+  <h1>Charge cost <span>calculator</span></h1>
+
+  <div class="hero">
+    <div class="batt-wrap">
+      <div class="batt-shell"><div class="batt-fill" id="battFillFrom"></div></div>
+      <div>
+        <div class="batt-readout" id="fromReadout">20<small>%</small></div>
+        <div class="batt-label">Current charge</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-head">
+      <span class="field-name">Current battery level</span>
+      <span class="field-val" id="fromVal">20<small> %</small></span>
+    </div>
+    <input type="range" id="fromSlider" min="0" max="100" step="1" value="20">
+  </div>
+
+  <div class="field">
+    <div class="field-head">
+      <span class="field-name">Charging to</span>
+      <span class="field-val" id="toVal">100<small> %</small></span>
+    </div>
+    <input type="range" id="toSlider" class="amber" min="0" max="100" step="1" value="100">
+  </div>
+
+  <div class="field">
+    <div class="field-head">
+      <span class="field-name">Electricity cost</span>
+    </div>
+    <div class="numfield">
+      <span>£</span>
+      <input type="number" id="rateInput" inputmode="decimal" step="0.01" value="0.27">
+      <small>per kWh</small>
+    </div>
+  </div>
+
+  <div class="result">
+    <div class="result-top">
+      <div>
+        <div class="result-label">Estimated cost</div>
+        <div class="result-cost" id="costOut">£0.00</div>
+      </div>
+    </div>
+    <div class="result-grid">
+      <div class="stat">
+        <div class="stat-label">Energy added</div>
+        <div class="stat-val" id="kwhOut">0.0 kWh</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Charge added</div>
+        <div class="stat-val" id="pctOut">0 %</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note" id="noteText"></p>
+
+  <details>
+    <summary>Advanced — battery & efficiency</summary>
+    <div class="adv">
+      <div class="field">
+        <div class="field-head">
+          <span class="field-name">Usable battery capacity</span>
+        </div>
+        <div class="numfield">
+          <input type="number" id="capInput" inputmode="decimal" step="0.5" value="75">
+          <small>kWh</small>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-head">
+          <span class="field-name">Charging losses</span>
+          <span class="field-val" id="lossVal">10<small> %</small></span>
+        </div>
+        <input type="range" id="lossSlider" min="0" max="25" step="1" value="10">
+      </div>
+      <p class="note">Early-build 2021 LR cars (LG pack, before ~Nov 2020 orders) measure closer to <b>72–75 kWh</b> usable. Later Panasonic packs run closer to <b>78–80 kWh</b> usable. Check your own figure in a battery app like Tessie or Scan My Tesla if you want to be precise — your pack may also have degraded slightly since 2021. Home AC charging typically loses <b>8–12%</b> to heat and conversion; Superchargers are usually a touch more efficient, around <b>5–8%</b>.</p>
+    </div>
+  </details>
+
+</div>
+
+<script>
+(function(){
+  var fromSlider=document.getElementById('fromSlider');
+  var toSlider=document.getElementById('toSlider');
+  var rateInput=document.getElementById('rateInput');
+  var capInput=document.getElementById('capInput');
+  var lossSlider=document.getElementById('lossSlider');
+
+  var fromVal=document.getElementById('fromVal');
+  var toVal=document.getElementById('toVal');
+  var lossVal=document.getElementById('lossVal');
+  var battFillFrom=document.getElementById('battFillFrom');
+  var fromReadout=document.getElementById('fromReadout');
+  var costOut=document.getElementById('costOut');
+  var kwhOut=document.getElementById('kwhOut');
+  var pctOut=document.getElementById('pctOut');
+  var noteText=document.getElementById('noteText');
+
+  function fmtGBP(n){return '£'+n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+  function render(){
+    var from=parseInt(fromSlider.value,10);
+    var to=parseInt(toSlider.value,10);
+    var rate=parseFloat(rateInput.value);
+    var cap=parseFloat(capInput.value);
+    var loss=parseInt(lossSlider.value,10);
+
+    if(isNaN(rate)||rate<0) rate=0;
+    if(isNaN(cap)||cap<=0) cap=75;
+
+    fromVal.innerHTML=from+'<small> %</small>';
+    toVal.innerHTML=to+'<small> %</small>';
+    lossVal.innerHTML=loss+'<small> %</small>';
+    fromReadout.innerHTML=from+'<small>%</small>';
+    battFillFrom.style.width=from+'%';
+    battFillFrom.classList.toggle('low',from<20);
+
+    var deltaPct=to-from;
+    if(deltaPct<=0){
+      costOut.textContent='£0.00';
+      kwhOut.textContent='0.0 kWh';
+      pctOut.textContent=deltaPct+' %';
+      noteText.textContent=deltaPct===0
+        ? 'Set a target above your current level to see the cost.'
+        : 'Target is below your current charge — nothing to add.';
+      return;
+    }
+
+    var kwhNeeded=(deltaPct/100)*cap;
+    var kwhFromWall=kwhNeeded/(1-loss/100);
+    var cost=kwhFromWall*rate;
+
+    costOut.textContent=fmtGBP(cost);
+    kwhOut.textContent=kwhFromWall.toFixed(1)+' kWh';
+    pctOut.textContent='+'+deltaPct+' %';
+    noteText.innerHTML='Based on a <b>'+cap.toFixed(1)+' kWh</b> usable pack, <b>'+loss+'%</b> charging loss and <b>'+fmtGBP(rate)+'/kWh</b>. '+kwhNeeded.toFixed(1)+' kWh actually reaches the battery; the rest is lost as heat during charging.';
+  }
+
+  [fromSlider,toSlider,rateInput,capInput,lossSlider].forEach(function(el){
+    el.addEventListener('input',render);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
